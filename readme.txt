@@ -2,8 +2,8 @@
 Contributors: whiteshadow
 Tags: posts, formatting, javascript, html, css, code, disable
 Requires at least: 2.8
-Tested up to: 3.3-beta3
-Stable tag: 1.4.4
+Tested up to: 3.4
+Stable tag: 1.4.6
 
 Lets you use raw HTML or any other code in your posts. You can also disable smart quotes and other automatic formatting on a per-post basis.
 
@@ -13,7 +13,7 @@ Lets you disable automatic formatting like smart quotes and automatic paragraphs
 
 The free version only works with the HTML editor. Get the Pro Version if you want to be able to switch between HTML and the Visual editor without WordPress messing up your content.
 
-[Upgrade to Pro version](http://wpplugins.com/plugin/850/raw-html-pro/)
+[Upgrade to Pro version](http://w-shadow.com/RawHTML/)
 
 **Features**
 
@@ -63,6 +63,13 @@ Open to the post editor and click the "Screen Options" button in the top-right p
 
 
 == Changelog ==
+
+= 1.4.6 =
+* Tested on WP 3.4 (final release).
+
+= 1.4.5 =
+* Tested on WP 3.4-alpha
+* Store per-post disable_* flags in a single post meta key instead of one key per flag.
 
 = 1.4.4 =
 * Fixed a minor conflict with the "Really simple Facebook Twitter share buttons" plugin. 

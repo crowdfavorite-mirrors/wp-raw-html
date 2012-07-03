@@ -9,11 +9,8 @@ require 'screen-options/screen-options.php';
 //Apply function $func to $content unless it's been disabled for the current post 
 function maybe_use_filter($func, $content){
 	global $post;
-	$setting = get_post_meta($post->ID, '_disable_'.$func, true);
-	if ( $setting == '' ){
-		$setting = get_post_meta($post->ID, 'disable_'.$func, true);
-	}
-	if ($setting == '1') {
+	$settings = rawhtml_get_post_settings($post->ID);
+	if ( $settings['disable_' . $func] ) {
 		return $content;
 	} else {
 		return $func($content);
@@ -92,20 +89,13 @@ function rawhtml_meta_box(){
 		'disable_convert_chars' => array('Disable convert_chars', 'convert_chars converts ampersand to HTML entities and "fixes" some Unicode character'),
 		'disable_convert_smilies' => array('Disable smilies', null),
 	);
-	$defaults = rawhtml_get_default_settings();
-	
+	$settings = rawhtml_get_post_settings($post->ID);
+
 	echo '<ul>';
 	foreach($fields as $field => $info){
 		list($legend, $title) = $info;
-		$current_setting = get_post_meta($post->ID, '_'.$field, true);
-		if (  $current_setting == '' ){
-			$current_setting = get_post_meta($post->ID, $field, true);
-		}
-		if ( $current_setting == '' ){
-			$current_setting = $defaults[$field];
-		} else {
-			$current_setting = (bool)intval($current_setting);
-		}
+		$current_setting = $settings[$field];
+
 ?>
 <li><label for="rawhtml_<?php echo $field; ?>" title="<?php if (!empty($title)) echo esc_attr($title); ?>">
 	<input type="checkbox" name="rawhtml_<?php echo $field; ?>" id="rawhtml_<?php echo $field; ?>" <?php
@@ -141,14 +131,16 @@ function rawhtml_save_postdata( $post_id ){
   }
   
   // OK, we're authenticated: we need to find and save the data
-  $fields  = array('disable_wpautop', 'disable_wptexturize', 'disable_convert_chars', 'disable_convert_smilies');
+  $fields = rawhtml_get_settings_fields();
+  $new_settings = array();
   foreach ( $fields as $field ){	
   	  if ( !empty($_POST['rawhtml_'.$field]) ){
-		update_post_meta($post_id, '_'.$field, '1');
+		$new_settings[$field] = true;
 	  } else {
-		update_post_meta($post_id, '_'.$field, '0');
+		$new_settings[$field] = false;
 	  };
   }
+  rawhtml_save_post_settings($post_id, $new_settings);
 
   return true;
 }
@@ -162,6 +154,91 @@ add_screen_options_panel(
 	'rawhtml_save_new_defaults',      //The function that gets triggered when settings are submitted/saved.
 	true                              //Auto-submit settings (via AJAX) when they change. 
 );
+
+/**
+ * Retrieve the "disable_*" flags associated with a post.
+ * If no flags have been set, this function will return the default settings.
+ *
+ * Note: Will transparently upgrade the old one-meta-key-per-flag storage system
+ * to the new one-key-per-post one.
+ *
+ * @param int $post_id
+ * @return array Flag values as an associative array.
+ */
+function rawhtml_get_post_settings($post_id) {
+	$defaults = rawhtml_get_default_settings();
+	$fields = rawhtml_get_settings_fields();
+
+	//Per-post settings should be stored as a comma-separated list of 1/0 flags.
+	$settings = get_post_meta($post_id, '_rawhtml_settings', true);
+	if ( $settings != '' ) {
+		$settings = explode(',', $settings, count($fields));
+		$settings = array_combine($fields, $settings);
+		foreach($settings as $field => $value) {
+			$settings[$field] = (bool)intval($value);
+		}
+	} else {
+		//Older versions of the plugin stored each flag in a separate meta key.
+		$settings = array();
+		$should_upgrade_settings = false;
+		foreach($fields as $field) {
+			$value = get_post_meta($post_id, '_'.$field, true);
+			if ( $value == '' ){
+				$value = get_post_meta($post_id, $field, true);
+			}
+			if ( $value == '' ){
+				$value = $defaults[$field];
+			} else {
+				$value = (bool)intval($value);
+				$should_upgrade_settings = true;
+			}
+			$settings[$field] = $value;
+		}
+
+		if ( $should_upgrade_settings ) {
+			rawhtml_save_post_settings($post_id, $settings);
+			rawhtml_delete_old_post_settings($post_id);
+		}
+	}
+
+	return $settings;
+}
+
+/**
+ * Save the "disable_*" flag values set for a post.
+ *
+ * @param int $post_id Post ID.
+ * @param array $settings Flag values as an associative array.
+ * @return void
+ */
+function rawhtml_save_post_settings($post_id, $settings) {
+	$fields = rawhtml_get_settings_fields();
+	$ordered_settings = array();
+	foreach($fields as $field) {
+		$ordered_settings[$field] = $settings[$field] ? '1' : '0';
+	}
+	update_post_meta($post_id, '_rawhtml_settings', implode(',', $ordered_settings));
+}
+
+/**
+ * Delete the old one-key-per-flag metadata that older versions of the plugin
+ * used to store per-post settings.
+ *
+ * @param int $post_id
+ */
+function rawhtml_delete_old_post_settings($post_id) {
+	$fields = rawhtml_get_settings_fields();
+	foreach($fields as $field) {
+		delete_post_meta($post_id, $field);
+	}
+	foreach($fields as $field) {
+		delete_post_meta($post_id, '_' . $field);
+	}
+}
+
+function rawhtml_get_settings_fields() {
+	return array('disable_wpautop', 'disable_wptexturize', 'disable_convert_chars', 'disable_convert_smilies');
+}
 
 /**
  * Retrieve the default settings for our post/page meta box.
