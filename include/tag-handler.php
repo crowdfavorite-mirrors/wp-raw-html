@@ -10,7 +10,7 @@ $wsh_raw_parts=array();
  * Extract content surrounded by [raw] or other supported tags 
  * and replace it with placeholder text. 
  * 
- * @global $wsh_raw_parts Used to store the extracted content blocks.
+ * @global array $wsh_raw_parts Used to store the extracted content blocks.
  * 
  * @param string $text The input content to filter.
  * @param bool $keep_tags Store both the tagged content and the tags themselves. Defaults to false - storing only the content. 
@@ -49,7 +49,7 @@ function wsh_extract_exclusions($text, $keep_tags = false){
 				} else {
 					$wsh_raw_parts[]=$content;
 				}				
-				$replacement = "!RAWBLOCK".(count($wsh_raw_parts)-1)."!";				
+				$replacement = "!RAWBLOCK".(count($wsh_raw_parts)-1)."!";
 			}
 			$text = substr_replace($text, $replacement, $start, 
 				$fin+strlen($end_tag)-$start
@@ -67,17 +67,17 @@ function wsh_extract_exclusions($text, $keep_tags = false){
 
 /**
  * Replace the placeholders created by wsh_extract_exclusions() with the original content.
- * 
- * @global $wsh_raw_parts Used to check if there is anything to insert.
- * 
+ *
+ * @global array $wsh_raw_parts Used to check if there is anything to insert.
+ *
  * @param string $text The input content to filter.
- * @param callback $placholder_callback Optional. The callback that will be used to process each placeholder. 
+ * @param callable|string $placeholder_callback Optional. The callback that will be used to process each placeholder.
  * @return string Filtered content.
  */
 function wsh_insert_exclusions($text, $placeholder_callback = 'wsh_insertion_callback'){
 	global $wsh_raw_parts;
 	if(!isset($wsh_raw_parts)) return $text;
-	return preg_replace_callback("/!RAWBLOCK(\d+?)!/", $placeholder_callback, $text);		
+	return preg_replace_callback("/(<p>)?!RAWBLOCK(?P<index>\d+?)!(\s*?<\/p>)?/", $placeholder_callback, $text);
 }
 
 /**
@@ -91,13 +91,35 @@ function wsh_insert_exclusions($text, $placeholder_callback = 'wsh_insertion_cal
  */
 function wsh_insertion_callback($matches){
 	global $wsh_raw_parts;
-	return $wsh_raw_parts[intval($matches[1])];
+
+	$openingParagraph = isset($matches[1]) ? $matches[1] : '';
+	$closingParagraph = isset($matches[3]) ? $matches[3] : '';
+	$code = $wsh_raw_parts[intval($matches['index'])];
+
+	//If the [raw] block is wrapped in its own paragraph, strip the <p>...</p> tags. If there's
+	//only one of <p>|</p> tag present, keep it - it's probably part of a larger paragraph.
+	if ( empty($openingParagraph) || empty($closingParagraph) ) {
+		$code = $openingParagraph . $code . $closingParagraph;
+	}
+	return $code;
 }
 
-//Extract the tagged content before WP can get to it, then re-insert it later.
-add_filter('the_content', 'wsh_extract_exclusions', 2);
-add_filter('the_content', 'wsh_insert_exclusions', 1001);
+function wsh_setup_content_filters() {
+	//Extract the tagged content before WP can get to it, then re-insert it later.
+	add_filter('the_content', 'wsh_extract_exclusions', 2);
 
+	//A workaround for WP-Syntax. If we run our insertion callback at the normal, extra-late
+	//priority, WP-Syntax will see the wrong content when it runs its own content substitution hook.
+	//We adapt to that by running our callback slightly earlier than WP-Syntax's.
+	$wp_syntax_priority = has_filter('the_content', 'wp_syntax_after_filter');
+	if ( $wp_syntax_priority !== false ) {
+		$rawhtml_priority = $wp_syntax_priority - 1;
+	} else {
+		$rawhtml_priority = 1001;
+	}
+	add_filter('the_content', 'wsh_insert_exclusions', $rawhtml_priority);
+}
+add_action('plugins_loaded', 'wsh_setup_content_filters');
 
 /* 
  * WordPress can also mangle code when initializing the post/page editor.
@@ -115,10 +137,8 @@ function wsh_insert_exclusions_for_editor($text){
 
 function wsh_insertion_callback_for_editor($matches){
 	global $wsh_raw_parts;
-	return htmlspecialchars($wsh_raw_parts[intval($matches[1])], ENT_NOQUOTES);
+	return htmlspecialchars($wsh_raw_parts[intval($matches['index'])], ENT_NOQUOTES);
 }
 
 add_filter('the_editor_content', 'wsh_extract_exclusions_for_editor', 2);
 add_filter('the_editor_content', 'wsh_insert_exclusions_for_editor', 1001);
-
-?>

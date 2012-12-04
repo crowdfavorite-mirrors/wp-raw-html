@@ -2,10 +2,10 @@
 /*
 Plugin Name: Raw HTML
 Plugin URI: http://w-shadow.com/blog/2007/12/13/raw-html-in-wordpress/
-Description: Lets you enter raw HTML in your posts and disable automatic formatting on a per-post basis. <a href="http://wpplugins.com/plugin/850/raw-html-pro/">Upgrade to Pro Version</a>
-Version: 1.4.6
+Description: Lets you enter any HTML/JS/CSS in your posts without WP changing it, as well as disable automatic formatting on a per-post basis. <strong>Usage:</strong> Wrap your code in [raw]...[/raw] tags. To avoid problems, only edit posts that contain raw code in HTML mode. <strong><a href="http://rawhtmlpro.com/?utm_source=RawHTML%20free&utm_medium=plugin_description&utm_campaign=Plugins">Upgrade to Pro</a></strong> to be able to use Visual editor on the same posts without it messing up the code.
+Version: 1.4.8
 Author: Janis Elsts
-Author URI: http://w-shadow.com/blog/
+Author URI: http://w-shadow.com/
 */
 
 /*

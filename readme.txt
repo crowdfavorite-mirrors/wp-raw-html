@@ -2,33 +2,31 @@
 Contributors: whiteshadow
 Tags: posts, formatting, javascript, html, css, code, disable
 Requires at least: 2.8
-Tested up to: 3.4
-Stable tag: 1.4.6
+Tested up to: 3.4.2
+Stable tag: 1.4.8
 
 Lets you use raw HTML or any other code in your posts. You can also disable smart quotes and other automatic formatting on a per-post basis.
 
 == Description ==
 
-Lets you disable automatic formatting like smart quotes and automatic paragraphs, and use raw HTML/JS/CSS code in your posts without WordPress messing it up.
-
-The free version only works with the HTML editor. Get the Pro Version if you want to be able to switch between HTML and the Visual editor without WordPress messing up your content.
-
-[Upgrade to Pro version](http://w-shadow.com/RawHTML/)
+Lets you disable automatic formatting like smart quotes and automatic paragraph creation, and use raw HTML/JS/CSS code in your posts without WordPress messing it up.
 
 **Features**
 
 With this plugin, you can wrap any part of your post in [raw]...[/raw] tags to prevent WordPress from converting newlines to HTML paragraphs, replacing apostrophes with typographic quotes and so on. This is very useful if you need to add a CSS block or JavaScript to your post.
 
-RawHTML will also add some new checkboxes to the "Edit" screen that let you disable certain WP filters on a per-post basis. This way you can : 
+RawHTML will also add new checkboxes to the "Edit Post" screen that let you disable certain WP filters on a per-post basis. This way you can : 
 
 * Disable wptexturize (the function that creates smart quotes and other typographic characters).
 * Disable automatic paragraph creation.
 * Disable image smilies. 
 * Disable convert_chars (the function that converts ampersands to HTML entities and "fixes" some Unicode characters).
 
+The free version only supports the HTML editor. [Get the Pro version](http://rawhtmlpro.com/?utm_source=wordpress.org&utm_medium=readme_link&utm_campaign=RawHTML%20free) if you want to be able to switch between HTML and the Visual editor without WordPress messing up your content.
+
 **Usage**
 
-To prevent a part of your post or page from being filtered by WordPress, wrap it in `[raw]...[/raw]` or `<!--raw-->...<!--/raw-->` tags. These two versions work exactly the same, except that the latter won't be visible to your visitors even if you deactivate Raw HTML.
+To prevent a part of your post or page from being filtered by WordPress, switch to the HTML editor and wrap it in `[raw]...[/raw]` or `<!--raw-->...<!--/raw-->` tags. These two versions work exactly the same, except that the latter won't be visible to your visitors even if you deactivate Raw HTML.
 
 *Example :*
 
@@ -42,9 +40,11 @@ a "test"!
 
 In this case, the tags will prevent WordPress from inserting paragraph breaks between "This", "is" and "a "test"", as well as ensure that the double quotes arround "test" are not converted to typographic (curly) quotes.
 
+To avoid problems, only edit posts that contain your custom code in HTML mode. If you'd like to be able to also use the Visual editor, [get the Pro version](http://rawhtmlpro.com/?utm_source=wordpress.org&utm_medium=readme_link&utm_campaign=RawHTML%20free). It will make the code betwen [raw] tags appear as a read-only placeholder when viewed in Visual mode, ensuring WordPress doesn't change it.
+
 **Notes**
 
-Personally, I prefer the `<!--raw-->...<!--/raw-->` syntax. These tags are formed as HTML comments, which means they won't be visible to your visitors even if you deactivate the Raw HTML plugin. On the other hand. the `[raw]...[/raw]` tags would show up.
+Some features of Raw HTML will only work for users who have the "unfiltered_html" capability. In a normal WordPress install that includes the Editor and Administrator roles. In a Multisite install, only the Super Admin has this capability by default.
 
 == Installation ==
 
@@ -57,12 +57,29 @@ To install the plugin follow these steps :
 
 == Frequently Asked Questions ==
 
+= What's the difference between the free version and the Pro version? =
+
+If you're using the free version, switching from HTML to the Visual editor can still mess up your code. The [Pro version](http://rawhtmlpro.com/?utm_source=wordpress.org&utm_medium=readme_link&utm_campaign=RawHTML%20free) fixes this. 
+
+The way it works is that it replaces `[raw]...[/raw]` code with read-only placeholders when viewed via the Visual editor, and restores the original code when you switch to HTML or when the post is displayed your readers. This allows you to switch between HTML and Visual modes without worrying your content will get mangled by WP.
+
 = How can I set some of the "Disable xyz" tweaks to be "On" by default? =
 
 Open to the post editor and click the "Screen Options" button in the top-right part of the page. A settings panel will appear. Locate the "Raw HTML defaults" section and tick the appropriate checkboxes. Any changes you make to these settings will only affect new and edited posts.
 
 
 == Changelog ==
+
+= 1.4.8 =
+* Fixed a conflict with WP-Syntax.
+* Fixed: Prevent WordPress from wrapping each [raw]...[/raw] block in a paragraph. Doesn't affect inline [raw] blocks.
+* Tested with WP 3.5-beta2.
+
+= 1.4.7 =
+* Tested with WP 3.4.1
+* Fixed the Author URI (was 404).
+* Updated the plugin description. Now it also includes short usage instructions.
+* Fixed the link to the Pro version (new site).
 
 = 1.4.6 =
 * Tested on WP 3.4 (final release).
